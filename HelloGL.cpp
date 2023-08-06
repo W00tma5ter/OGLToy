@@ -25,6 +25,9 @@ const char* fragmentShaderSource = "#version 460 core\n"
 const unsigned int resolution_x = 1920;
 const unsigned int resolution_y = 1080;
 
+//Other Misc Variables.
+bool wire_toggle = false;
+
 int main()
 {
     // Initialize GLFW.
@@ -109,12 +112,18 @@ int main()
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
-    //Setup triangle.
-    // Vertex data: draws a triangle.
-    float vertices[] = {
-    -0.5f, -0.5f, 0.0f,     // left.
-     0.5f, -0.5f, 0.0f,     // right.
-     0.0f,  0.5f, 0.0f      // bottom.
+    // Vertex and index data.
+    float vertices[] = 
+    {
+     0.5f,  0.5f, 0.0f,     // top right
+     0.5f, -0.5f, 0.0f,     // bottom right
+    -0.5f, -0.5f, 0.0f,     // bottom left
+    -0.5f,  0.5f, 0.0f      // top left 
+    };
+    unsigned int indices[] = 
+    {
+        0, 1, 3,            // first triangle
+        1, 2, 3             // second triangle
     };
 
     // Generate and bind vertex array object.
@@ -122,7 +131,7 @@ int main()
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
 
-    // Create vertex buffer object and bind to buffer.
+    // Create vertex buffer object and bind to buffers.
     unsigned int VBO;
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -144,9 +153,23 @@ int main()
         GL_FLOAT,           // data type.
         GL_FALSE,           // normalize data.
         3 * sizeof(float),  // size of data.
-        (void*)0            //ofset (type void).
+        (void*)0            // ofset (type void).
     );
     glEnableVertexAttribArray(0);
+
+    // Create element buffer object and bind to buffers.
+    unsigned int EBO;
+    glGenBuffers(1, &EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+
+    // Copy index data into EBO.
+    glBufferData
+    (
+        GL_ELEMENT_ARRAY_BUFFER, 
+        sizeof(indices), 
+        indices, 
+        GL_STATIC_DRAW
+    );
 
     // uncomment this call to draw in wireframe polygons.
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -165,7 +188,13 @@ int main()
             // Draw triangle.
             glUseProgram(shaderProgram);
             glBindVertexArray(VAO);
-            glDrawArrays(GL_TRIANGLES, 0, 3);
+
+            // Draw a triangle using VBO vertices.
+            //glDrawArrays(GL_TRIANGLES, 0, 3);
+
+            // Draw a rectangle using EBO indices.
+            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+            glBindVertexArray(0);
         }
 
         // Check and call events and swap the buffers.
@@ -184,12 +213,27 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
-// Input processing function.
+// Input processing.
 void processInput(GLFWwindow* window)
 {
-    //
+    // Close application.
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
         glfwSetWindowShouldClose(window, true);
+    }
+
+    // Toggle wireframe mode.
+    else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+    {
+        if (wire_toggle)
+        {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            wire_toggle = !wire_toggle;
+        }
+        else
+        {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            wire_toggle = !wire_toggle;
+        }
     }
 }
