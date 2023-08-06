@@ -26,7 +26,7 @@ const unsigned int resolution_x = 1920;
 const unsigned int resolution_y = 1080;
 
 //Other Misc Variables.
-bool wire_toggle = false;
+bool wireframe = false;
 
 int main()
 {
@@ -50,7 +50,7 @@ int main()
     }
     glfwMakeContextCurrent(window);
 
-    // Register Callback to refresh framebuffer.
+    // Register Callback to refresh framebuffer on window resize.
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     // Initialize GLAD system (OpenGL function pointers).
@@ -60,11 +60,12 @@ int main()
         return -1;
     }
 
+
+
     // Build and compile shader program.
     // Error checking variables.
     int  success;
     char infoLog[512];
-    
     // Create vertex shader object.
     unsigned int vertexShader;
     vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -78,7 +79,6 @@ int main()
         glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
         std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
     }
-
     // Create fragment shader object.
     unsigned int fragmentShader;
     fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
@@ -92,7 +92,6 @@ int main()
         glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
         std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
     }
-
     // Create shader program object.
     unsigned int shaderProgram;
     shaderProgram = glCreateProgram();
@@ -107,10 +106,11 @@ int main()
         glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
         std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
     }
-    
     // Cleanup shaders after linking.
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
+
+
 
     // Vertex and index data.
     float vertices[] = 
@@ -131,11 +131,10 @@ int main()
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
 
-    // Create vertex buffer object and bind to buffers.
+    // Generate and bind vertex buffer object.
     unsigned int VBO;
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
     // Copy vertex data into VBO.
     glBufferData
     (
@@ -144,7 +143,6 @@ int main()
         vertices,           // actual data to pass.
         GL_STATIC_DRAW      // GPU draw type.
     );
-
     // Set vertex attributes and enable.
     glVertexAttribPointer
     (
@@ -161,7 +159,6 @@ int main()
     unsigned int EBO;
     glGenBuffers(1, &EBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-
     // Copy index data into EBO.
     glBufferData
     (
@@ -171,8 +168,7 @@ int main()
         GL_STATIC_DRAW
     );
 
-    // uncomment this call to draw in wireframe polygons.
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    
 
     // Render Loop (frame).
     while (!glfwWindowShouldClose(window))
@@ -198,11 +194,12 @@ int main()
         }
 
         // Check and call events and swap the buffers.
-        glfwSwapBuffers(window);
         glfwPollEvents();
+        glfwSwapBuffers(window);
+        
     }
 
-    // Cleanup resources.
+    // Cleanup resources, end program.
     glfwTerminate();
     return 0;
 }
@@ -216,24 +213,24 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 // Input processing.
 void processInput(GLFWwindow* window)
 {
-    // Close application.
+    // ESC: Close application.
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
         glfwSetWindowShouldClose(window, true);
     }
 
-    // Toggle wireframe mode.
-    else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+    // SPACE: Toggle wireframe mode.
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
     {
-        if (wire_toggle)
+        if (wireframe)
         {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            wire_toggle = !wire_toggle;
+            wireframe = !wireframe;
         }
         else
         {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            wire_toggle = !wire_toggle;
+            wireframe = !wireframe;
         }
     }
 }
