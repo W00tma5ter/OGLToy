@@ -7,18 +7,24 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
 //Shader code.
-const char* vertexShaderSource = "#version 460 core\n"
+const char* vertexShaderSource = 
+"#version 460 core\n"
 "layout (location = 0) in vec3 aPos;\n"
+"uniform vec4 ourColor;\n"
+"out vec4 vertexColor;\n"
 "void main()\n"
 "{\n"
-"   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+"    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+"    vertexColor = ourColor;\n"
 "}\0";
 
-const char* fragmentShaderSource = "#version 460 core\n"
+const char* fragmentShaderSource = 
+"#version 460 core\n"
+"in vec4 vertexColor;\n"
 "out vec4 FragColor;\n"
 "void main()\n"
 "{\n"
-"    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+"    FragColor = vertexColor;\n"
 "}\0";
 
 //Window Size Variables.
@@ -57,6 +63,7 @@ int main()
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cout << "Failed to initialize GLAD" << std::endl;
+        glfwTerminate();
         return -1;
     }
 
@@ -162,13 +169,13 @@ int main()
     // Copy index data into EBO.
     glBufferData
     (
-        GL_ELEMENT_ARRAY_BUFFER, 
-        sizeof(indices), 
-        indices, 
-        GL_STATIC_DRAW
+        GL_ELEMENT_ARRAY_BUFFER,    // buffer type.
+        sizeof(indices),            // size of data.
+        indices,                    // actual data to pass.
+        GL_STATIC_DRAW              // GPU draw type.
     );
 
-    
+
 
     // Render Loop (frame).
     while (!glfwWindowShouldClose(window))
@@ -184,6 +191,13 @@ int main()
             // Draw triangle.
             glUseProgram(shaderProgram);
             glBindVertexArray(VAO);
+
+            //Update shape color.
+            float timeValue = glfwGetTime();
+            float greenValue = (sin(timeValue) / 2.0f) + 0.5f;
+            int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
+            glUseProgram(shaderProgram);
+            glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
 
             // Draw a triangle using VBO vertices.
             //glDrawArrays(GL_TRIANGLES, 0, 3);
