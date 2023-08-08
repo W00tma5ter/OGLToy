@@ -2,6 +2,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <Shader.h>
+#include <stb_image.h>
 
 // Function definitions.
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -130,6 +131,9 @@ int main()
 
             // Draw triangle.
             ourShader.use();
+
+            float offset = 0.0f;
+            ourShader.setFloat("xOffset", offset);
 
             // Draw a triangle using VBO vertices.
             glBindVertexArray(VAO);
